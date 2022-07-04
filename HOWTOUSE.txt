@@ -1,4 +1,5 @@
 READ EVERYTHING:
+ - Run the Runner class to run the program
  - the three vectors show the velocity, horizontal velocity, and vertical velocity. This represents the initial point of the projectiles
  - use the WASD keys to move the intial point
  - to change the angle of the velocity vector, click anywhere in the window and the vector will point towards it
