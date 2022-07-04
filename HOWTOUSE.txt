@@ -5,7 +5,6 @@ READ EVERYTHING:
  - to change the angle of the velocity vector, click anywhere in the window and the vector will point towards it
  - press the spacebar to create a projectile
  - the + and - keys change the velocity of the initial ponit (velocity of the projectiles)
- - the M and N keys change the gravity
  - to scroll across the map, use the LEFT and RIGHT arrow keys
  - the R key resets everything
 
