@@ -1,8 +1,0 @@
-HOW TO USE:
- - the three vectors show the velocity, horizontal velocity, and vertical velocity. This represents the initial point of the projectiles
- - use the WASD keys to move the intial point
- - to change the angle of the velocity vector, click anywhere in the window and the vector will point towards it
- - press the spacebar to create a projectile
- - the + and - keys change the velocity of the initial ponit (velocity of the projectiles)
- - to scroll across the map, use the LEFT and RIGHT arrow keys
- - the R key resets everything
