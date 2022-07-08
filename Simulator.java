@@ -10,6 +10,7 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
     private JFrame frame;
     private JFrame parametersFrame;
     private Parameters parameters;
+    volatile private boolean mouseHeld;
 
     //physics
     private PhysicsHandler engine;
@@ -50,7 +51,7 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
                 // yandere code L
                 parameters.updateToTextFieldValues();
                 engine.gravity = parameters.changeParameter[0] ? (double)parameters.parameters[0] : engine.gravity;
-             // initial.projLength = parameters.changeParameter[1] ? (int)parameters.parameters[1] : initial.projLength;
+             // initial.projDepth = parameters.changeParameter[1] ? (int)parameters.parameters[1] : initial.projDepth;
                 initial.projWidth = parameters.changeParameter[2] ? (int)parameters.parameters[2] : initial.projWidth;
                 initial.projHeight = parameters.changeParameter[3] ? (int)parameters.parameters[3] : initial.projHeight;
                 initial.projMass = parameters.changeParameter[4] ? (double)parameters.parameters[4] : initial.projMass;
@@ -81,6 +82,12 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
         {
             try { Thread.sleep(1000/fps); } 
             catch (InterruptedException e) {}
+
+            double mx = MouseInfo.getPointerInfo().getLocation().getX();
+            double my = MouseInfo.getPointerInfo().getLocation().getY();
+            
+            if(mouseHeld)
+                initial.updateVectorDirection(mx-(frame.getWidth()/2)+xOffset, frame.getHeight()-my);
 
             initial.updateXYVectorMagnitudes();
 
@@ -122,7 +129,7 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
             engine.airResistance = false;
 
             initial.projHeight = 50;
-            // initial.projLength = 50;
+            // initial.projDepth = 50;
             initial.projWidth = 50;
             initial.projMass = 100;
             initial.velocity.velocity = 100;
@@ -157,16 +164,13 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
             xOffset+=20; 
     }
 
-    public void mousePressed(MouseEvent e) 
-    {
-        initial.updateVectorDirection(e.getX()-(frame.getWidth()/2)+xOffset, frame.getHeight()-e.getY());
-    }
+    public void mousePressed(MouseEvent e) { mouseHeld = true; }
+    public void mouseReleased(MouseEvent e) { mouseHeld = false; }
 
     public void keyTyped(KeyEvent e) {}
     public void keyReleased(KeyEvent e) {}
 
     public void mouseClicked(MouseEvent e) {}
-    public void mouseReleased(MouseEvent e) {}
     public void mouseEntered(MouseEvent e) {}
     public void mouseExited(MouseEvent e) {}
 
