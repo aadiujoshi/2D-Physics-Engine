@@ -12,7 +12,7 @@ public class InitialPoint
 
     ArrayList<Projectile> projectiles;
     
-    //projectile projs
+    //projectile defaults
     //int projLength;
     int projWidth;
     int projHeight;
