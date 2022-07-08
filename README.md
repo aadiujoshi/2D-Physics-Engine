@@ -7,3 +7,7 @@ HOW TO USE:
  - To scroll across the map, use the LEFT and RIGHT arrow keys
  - The R key resets everything
  - You can set custom parameter values using the options menu. Click the "Update values" button to apply the changes
+ 
+  NOTE:
+   - Air Resistance has not been implemented as of v1.2.1
+   - The projectile depth and projectile mass fields have no purpose as of v1.2.1, since they are only used for calculating air resistance
