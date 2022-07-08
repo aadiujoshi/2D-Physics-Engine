@@ -5,7 +5,7 @@ public abstract class Projectile
     double x; //(cartesian, NOT graphical coordinates) | also the center of the objects/shape
     double y;
 
-    //int length;
+    //int depth;
     int width;
     int height;
 
@@ -16,15 +16,15 @@ public abstract class Projectile
 
     double time;
 
-    public Projectile(double x, double y, /*int length,*/ int width, int height, double mass, InitialPoint iPoint)
+    public Projectile(double x, double y, /*int depth,*/ int width, int height, double mass, InitialPoint iPoint)
     {
         this.x = x;
         this.y = y;
-        //this.length = length;
+        //this.depth = depth;
         this.width = width;
         this.height = height;
         this.initial = iPoint;
-        //this.volume = length*width*height;
+        //this.volume = depth*width*height;
         this.mass = mass;
         this.time = 0;
     }
