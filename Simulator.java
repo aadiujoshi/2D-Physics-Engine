@@ -16,7 +16,7 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
     private PhysicsHandler engine;
     private InitialPoint initial;
 
-    private int fps;
+    private long fps;
 
     //scrolling
     private int xOffset;
@@ -58,7 +58,8 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
                 initial.x = parameters.changeParameter[5] ? (double)parameters.parameters[5] : initial.x;
                 initial.y = parameters.changeParameter[6] ? (double)parameters.parameters[6] : initial.y;
                 initial.velocity.velocity = parameters.changeParameter[7] ? (double)parameters.parameters[7] : initial.velocity.velocity;
-                initial.velocity.angle = parameters.changeParameter[8] ? (int)parameters.parameters[8] : initial.velocity.angle;
+                if(parameters.changeParameter[8]) /* update angle */
+                    initial.updateVectorDirection(initial.x+Math.cos((int)parameters.parameters[8]*(Math.PI/180)), initial.y+Math.sin((int)parameters.parameters[8]*(Math.PI/180)));
                 engine.airResistance = parameters.changeParameter[9] ? (boolean)parameters.parameters[9] : engine.airResistance;
             }
         });
@@ -89,8 +90,6 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
             if(mouseHeld)
                 initial.updateVectorDirection(mx-(frame.getWidth()/2)+xOffset, frame.getHeight()-my);
 
-            initial.updateXYVectorMagnitudes();
-
             engine.calculateProjectileMotion(initial, initial.projectiles, 1000/fps);
 
             super.repaint();
@@ -100,6 +99,7 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
     public void paintComponent(Graphics gr)
     {
         Graphics2D g = (Graphics2D)gr;
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, frame.getWidth(), frame.getHeight());
 
@@ -138,6 +138,8 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
             initial.x = 0;
             initial.y = 100;
             
+            initial.updateXYVectorMagnitudes();
+
             xOffset = 0;
             initial.projectiles.clear();
         }
