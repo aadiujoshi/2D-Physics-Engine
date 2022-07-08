@@ -11,7 +11,7 @@ public class Parameters extends JPanel
     String[] parameterStrings;
 
     //array of all parameters (multiple data types)
-    // gravity(0), projLength(1), projWidth(2), projHeight(3), projMass(4), x(5), y(6), velocity(7), angle(8), airResistance(9)
+    // gravity(0), projDepth(1), projWidth(2), projHeight(3), projMass(4), x(5), y(6), velocity(7), angle(8), airResistance(9)
     Object[] parameters;
 
     //array of whether or not to change the parameter
@@ -27,7 +27,7 @@ public class Parameters extends JPanel
 
     public Parameters()
     {
-        parameterStrings = new String[]{"Gravity", "Projectile Length", "Projectile Width", "Projectile height", "Projectile Mass", "Initial X", "Initial Y", "Initial Velocity", "Initial Angle"};
+        parameterStrings = new String[]{"Gravity", "Projectile Depth", "Projectile Width", "Projectile height", "Projectile Mass", "Initial X", "Initial Y", "Initial Velocity", "Initial Angle"};
         parameters = new Object[]{300.0, 50, 50, 50, 100.0, 0.0, 100.0, 200.0, 45, false};
         changeParameter = new boolean[]{false, false, false, false, false, false, false, false, false, false};
         textfields = new JTextField[9]; //exclude airResistance
