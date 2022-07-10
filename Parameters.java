@@ -28,7 +28,7 @@ public class Parameters extends JPanel
     public Parameters()
     {
         parameterStrings = new String[]{"Gravity", "Projectile Depth", "Projectile Width", "Projectile height", "Projectile Mass", "Initial X", "Initial Y", "Initial Velocity", "Initial Angle"};
-        parameters = new Object[]{300.0, 50, 50, 50, 100.0, 0.0, 100.0, 200.0, 45, false};
+        parameters = new Object[]{300.0, 50, 50, 50, 100.0, 0.0, 100.0, 200.0, 45.0, false};
         changeParameter = new boolean[]{false, false, false, false, false, false, false, false, false, false};
         textfields = new JTextField[9]; //exclude airResistance
         
