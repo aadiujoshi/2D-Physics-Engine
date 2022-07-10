@@ -2,9 +2,9 @@ import java.awt.*;
 
 public class Rectangle extends Projectile
 {
-    public Rectangle(double x, double y, /*int depth,*/ int width, int height, double mass, InitialPoint iPoint)
+    public Rectangle(double x, double y, int depth, int width, int height, double mass, InitialPoint iPoint)
     {
-        super(x, y, /*depth,*/ width, height, mass, iPoint);
+        super(x, y, depth, width, height, mass, iPoint);
     }
 
     public void drawObject(int fWidth, int fHeight, int xOffset, Graphics2D g) 
