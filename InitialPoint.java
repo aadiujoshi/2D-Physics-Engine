@@ -12,8 +12,8 @@ public class InitialPoint
 
     ArrayList<Projectile> projectiles;
     
-    //projectile defaults
-    //int projLength;
+    //projectile 
+    int projDepth;
     int projWidth;
     int projHeight;
     double projMass;
@@ -25,7 +25,7 @@ public class InitialPoint
         this.velocity = velocity;
 
         this.projHeight = 50;
-        // this.projLength = 50;
+        this.projDepth = 50;
         this.projWidth = 50;
         this.projMass = 100;
 
@@ -43,7 +43,7 @@ public class InitialPoint
         double theta = Math.atan2(cy, cx)*(180/Math.PI);
         theta = theta>=0 ? theta : 360+theta;
 
-        this.velocity.angle = (int)Math.round(theta);
+        this.velocity.angle = theta;
         this.velocity.radians = velocity.angle*(Math.PI/180);
 
         updateXYVectorMagnitudes();
@@ -60,7 +60,7 @@ public class InitialPoint
 
     public void createProjectileObject()
     {
-        projectiles.add(new Rectangle(this.x, this.y, /*projLength,*/ projWidth, projHeight, projMass, new InitialPoint(this.x, this.y, this.velocity)));
+        projectiles.add(new Rectangle(this.x, this.y, projDepth, projWidth, projHeight, projMass, new InitialPoint(this.x, this.y, this.velocity)));
     }
 
     public void drawInitialPoint(int fWidth, int fHeight, int xOffset, Graphics2D g)
