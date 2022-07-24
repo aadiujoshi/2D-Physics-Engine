@@ -3,20 +3,48 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 
 public class Simulator extends JPanel implements KeyListener, MouseListener
 {
     //gooey
     private JFrame frame;
     private JFrame parametersFrame;
-    private Parameters parameters;
+    private ParametersPanel parameters;
     volatile private boolean mouseHeld;
 
     //physics
     private PhysicsHandler engine;
     private InitialPoint initial;
 
-    private final int FPS = Short.MAX_VALUE; //higher the frames -> higher the precision
+    private volatile ArrayList<Projectile> projectiles;
+
+    //projectile
+    private int projDepth;
+    private int projWidth;
+    private int projHeight;
+    private double projMass;
+
+    private double blastRadius;
+    private double blastForce;
+
+    private int projType; //type of projectile that is shot | 1 -> rectangle, 2 -> explosive
+
+
+    //speedy rendering
+    private double frameLocationX;
+    private double frameLocationY;
+
+    private double mouseX;
+    private double mouseY;
+
+    private Thread graphicsThread;
+    private Thread mouseCursorThread;
+    private Thread physicsHandlerThread;
+
+    // private final int FPS = 360; //higher the frames -> higher the precision | MUST BE LESS THAN 1000 FPS
+    private final double TICK_SPEED; //determines how fast the projectiles move relative to time | TICK_SPEED is in milliseconds
 
     //scrolling
     private int xOffset;
@@ -24,11 +52,57 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
 
     public Simulator(int width, int height)
     {
-        engine = new PhysicsHandler();
-        initial = new InitialPoint(0, 100, new Vector(100, 45));
-        xOffset = 0;
-        initWindow(width, height);
-        mainloop();
+        this.engine = new PhysicsHandler();
+        this.initial = new InitialPoint(0, 100, new Vector(100, 45));
+        this.projectiles = new ArrayList<Projectile>();
+        this.projHeight = 50;
+        this.projDepth = 50;
+        this.projWidth = 50;
+        this.projMass = 100;
+        this.blastRadius = 300;
+        this.blastForce = 50;
+        this.projType = 1;
+        this.xOffset = 0;
+        this.TICK_SPEED = 1;
+        this.graphicsThread = new Thread(new Runnable(){
+            public void run() {
+                while(true){
+                    repaint();
+                }
+            }
+        });
+        this.mouseCursorThread = new Thread(new Runnable(){
+            public void run() {
+                while(true) {
+                    mouseX = MouseInfo.getPointerInfo().getLocation().getX();
+                    mouseY = MouseInfo.getPointerInfo().getLocation().getY();
+                }
+            }
+        });
+        this.physicsHandlerThread = new Thread(new Runnable(){
+            public void run(){
+                while(true) {
+                    // try { Thread.sleep(1); }
+                    // catch (InterruptedException e) {}
+
+                    nanoDelay(150000);
+
+                    double mx = mouseX-frameLocationX;
+                    double my = mouseY-frameLocationY;
+                    
+                    if(mouseHeld)
+                        initial.updateVectorDirection(mx-(frame.getWidth()/2)+xOffset, frame.getHeight()-my);
+
+                    engine.calculateProjectileMotion(initial, projectiles, TICK_SPEED);
+                }
+            }
+        });
+        this.initWindow(width, height);
+
+        //threads
+        graphicsThread.start();
+        mouseCursorThread.start();
+        physicsHandlerThread.start();
     }
 
     public void initWindow(int width, int height)
@@ -39,28 +113,48 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
         
         parametersFrame = new JFrame("Parameter Values");
         parametersFrame.setSize(400, 200);
+        parametersFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        parameters = new ParametersPanel();
 
-        parameters = new Parameters();
-
-        JButton updateValuesButton = new JButton("Update Values");
+        JButton updateValuesButton = new JButton("Apply");
         updateValuesButton.setFocusable(false);
         updateValuesButton.addActionListener(new ActionListener(){
+            @Override
             public void actionPerformed(ActionEvent e) 
             {
-                // yandere code L
                 parameters.updateToTextFieldValues();
-                engine.gravity = parameters.changeParameter[0] ? (double)parameters.parameters[0] : engine.gravity;
-                initial.projDepth = parameters.changeParameter[1] ? (int)parameters.parameters[1] : initial.projDepth;
-                initial.projWidth = parameters.changeParameter[2] ? (int)parameters.parameters[2] : initial.projWidth;
-                initial.projHeight = parameters.changeParameter[3] ? (int)parameters.parameters[3] : initial.projHeight;
-                initial.projMass = parameters.changeParameter[4] ? (double)parameters.parameters[4] : initial.projMass;
-                initial.x = parameters.changeParameter[5] ? (double)parameters.parameters[5] : initial.x;
-                initial.y = parameters.changeParameter[6] ? (double)parameters.parameters[6] : initial.y;
-                initial.velocity.velocity = parameters.changeParameter[7] ? (double)parameters.parameters[7] : initial.velocity.velocity;
-                if(parameters.changeParameter[8]) /* update angle */
-                    initial.updateVectorDirection(initial.x+Math.cos((double)parameters.parameters[8]*(Math.PI/180)), initial.y+Math.sin((double)parameters.parameters[8]*(Math.PI/180)));
-                initial.updateXYVectorMagnitudes();
-                engine.airResistance = parameters.changeParameter[9] ? (boolean)parameters.parameters[9] : engine.airResistance;
+
+                for(int i = 0; i < parameters.changeParameter.length; i++)
+                {
+                    boolean b = parameters.changeParameter[i];
+                    switch(i)
+                    {
+                        case 0: engine.gravity = b ? parameters.gravity : engine.gravity;
+                            break;
+                        case 1: projDepth = b ? parameters.projDepth : projDepth;
+                            break;
+                        case 2: projWidth = b ? parameters.projWidth : projWidth;
+                            break;
+                        case 3: projHeight = b ? parameters.projHeight : projHeight;
+                            break;
+                        case 4: projMass = b ? parameters.projMass : projMass;
+                            break;
+                        case 5: initial.x = b ? parameters.x : initial.x;
+                            break;
+                        case 6: initial.y = b ? parameters.y : initial.y;
+                            break;
+                        case 7: initial.velocity.velocity = b ? parameters.velocity : initial.velocity.velocity;
+                            break;
+                        case 8: 
+                            if(b) //angle
+                                initial.updateVectorDirection(initial.x+Math.cos((double)parameters.angle*(Math.PI/180)), initial.y+Math.sin((double)parameters.angle*(Math.PI/180)));
+                            break;
+                        case 9: engine.airResistance = b ? parameters.airResistance : engine.airResistance;
+                            break;
+                        case 10: engine.collision = b ? parameters.collision : engine.collision;
+                    }
+                    initial.updateXYVectorMagnitudes();
+                }
             }
         });
         parameters.add(updateValuesButton);
@@ -69,47 +163,71 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
         this.setLayout(null);
 
         frame.add(this);
+        frame.addComponentListener(new ComponentListener(){
+            public void componentMoved(ComponentEvent e) {
+                try{
+                    frameLocationX = getLocationOnScreen().getX();
+                    frameLocationY = getLocationOnScreen().getY(); 
+                } catch(java.awt.IllegalComponentStateException i){}
+            }
+            public void componentResized(ComponentEvent e) {  
+                try{
+                    frameLocationX = getLocationOnScreen().getX();
+                    frameLocationY = getLocationOnScreen().getY(); 
+                } catch(java.awt.IllegalComponentStateException i) {}
+            }
+            public void componentHidden(ComponentEvent e) {}
+            public void componentShown(ComponentEvent e) {}
+        });
         frame.addKeyListener(this);
         frame.addMouseListener(this);
         
         frame.setVisible(true);
+        
+        this.frameLocationX = this.getLocationOnScreen().getX();
+        this.frameLocationY = this.getLocationOnScreen().getY();
+
         parametersFrame.setVisible(true);
         frame.validate();
-    }
-    
-    public void mainloop()
-    {
-        while(true)
-        {
-            try { Thread.sleep(1000/FPS); } 
-            catch (InterruptedException e) { }
-
-            double mx = MouseInfo.getPointerInfo().getLocation().getX();
-            double my = MouseInfo.getPointerInfo().getLocation().getY();
-            
-            if(mouseHeld)
-                initial.updateVectorDirection(mx-(frame.getWidth()/2)+xOffset, frame.getHeight()-my);
-
-            engine.calculateProjectileMotion(initial, initial.projectiles, (double)1000/FPS);
-
-            super.repaint();
-        }
     }
 
     public void paintComponent(Graphics gr)
     {
         Graphics2D g = (Graphics2D)gr;
-        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, frame.getWidth(), frame.getHeight());
 
         initial.drawInitialPoint(frame.getWidth(), frame.getHeight(), xOffset, g);
 
-        if(initial.projectiles != null) //draw projectiles
-            for(Projectile so: initial.projectiles)
-                so.drawObject(frame.getWidth(), frame.getHeight(), xOffset, g);
+        if(projectiles != null) //draw projectiles
+                synchronized(projectiles){
+                    try{
+                        for(Projectile so: projectiles)
+                            so.drawObject(frame.getWidth(), frame.getHeight(), xOffset, g);
+                    } catch(ConcurrentModificationException e) {}
+                }
 
         g.dispose();
+    }
+
+    public void nanoDelay(long nanos)
+    {
+        final long end = System.nanoTime() + nanos;
+        long timeLeft = nanos;
+        do {
+            timeLeft = end - System.nanoTime();
+        } while (timeLeft > 0);
+    }
+
+    public void createProjectileObject()
+    {
+        synchronized(projectiles) {
+            if(projType == 1)
+                projectiles.add(new RectangleProjectile(new InitialPoint(initial.x, initial.y, new Vector(initial.velocity.velocity, initial.velocity.angle)), projDepth, projWidth, projHeight, projMass));
+            if(projType == 2)
+                projectiles.add(new ExplosiveProjectile(new InitialPoint(initial.x, initial.y, new Vector(initial.velocity.velocity, initial.velocity.angle)), projDepth, projWidth, projHeight, projMass, projWidth /*used as radius*/, blastRadius, blastForce));
+        }
     }
 
     public void keyPressed(KeyEvent e)
@@ -122,31 +240,37 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
         if(e.getKeyChar() == 's')
             initial.y-=10;
         if(e.getKeyChar() == 'd')
-            initial.x+=10;
+            initial.x+=10; 
+        
+        if(e.getKeyChar() == 'b')
+            projType = projType == 1 ? 2 : 1;
         
         if(e.getKeyChar() == 'r')
         {
-            engine.gravity = 200;
+            engine.gravity = 100;
             engine.airResistance = false;
+            engine.collision = false;
 
-            initial.projHeight = 50;
-            initial.projDepth = 50;
-            initial.projWidth = 50;
-            initial.projMass = 100;
+            projHeight = 50;
+            projDepth = 50;
+            projWidth = 50;
+            projMass = 100;
             initial.velocity.velocity = 100;
             initial.velocity.angle = 45;
             initial.velocity.radians = initial.velocity.angle*(Math.PI/180);
             initial.x = 0;
             initial.y = 100;
             
+            blastRadius = 50;
+
             initial.updateXYVectorMagnitudes();
 
             xOffset = 0;
-            initial.projectiles.clear();
+            projectiles.clear();
         }
 
         if(e.getKeyChar() == ' ')
-            initial.createProjectileObject();
+            this.createProjectileObject();
 
         if(e.getKeyChar() == '+')
         {
