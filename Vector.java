@@ -3,10 +3,10 @@ import java.awt.*;
 public class Vector 
 {
     double velocity; //pixels per second
-    int angle;
+    double angle;
     double radians;
 
-    public Vector(double velocity, int angle)
+    public Vector(double velocity, double angle)
     {
         this.velocity = velocity;
         this.angle = angle;
