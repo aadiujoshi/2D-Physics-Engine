@@ -11,5 +11,5 @@ HOW TO USE:
  
   NOTE:
    - Air Resistance has not been implemented as of v1.3.0
-   - The projectile depth and projectile mass fields have no purpose as of v1.3.0, since they are only used for calculating air resistance
    - As of v1.3.0 the collision option only uses a simple stacking and side collision method. Weight distribution is not factored.
+   - Explosion physics was highly simplified. It ignores projectile acceleration from an explosion, and its projected surface area, and other air/gas laws.
