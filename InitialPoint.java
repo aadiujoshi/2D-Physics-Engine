@@ -1,4 +1,3 @@
-import java.util.ArrayList;
 import java.awt.Graphics2D;
 
 public class InitialPoint 
@@ -10,26 +9,11 @@ public class InitialPoint
     Vector verticalVelocity;
     Vector velocity;
 
-    ArrayList<Projectile> projectiles;
-    
-    //projectile 
-    int projDepth;
-    int projWidth;
-    int projHeight;
-    double projMass;
-
     public InitialPoint(double x, double y, Vector velocity)
     {
         this.x = x;
         this.y = y;
         this.velocity = velocity;
-
-        this.projHeight = 50;
-        this.projDepth = 50;
-        this.projWidth = 50;
-        this.projMass = 100;
-
-        this.projectiles = new ArrayList<>();
 
         this.horizontalVelocity = new Vector(Math.cos(velocity.radians)*velocity.velocity, (velocity.angle>90 && velocity.angle<270)?180:0);
         this.verticalVelocity = new Vector(Math.sin(velocity.radians)*velocity.velocity, (velocity.angle>=0 && velocity.angle<=180)?90:270);
@@ -56,11 +40,6 @@ public class InitialPoint
 
         this.verticalVelocity.velocity = Math.sin(velocity.radians)*velocity.velocity;
         this.verticalVelocity.angle = (velocity.angle>=0 && velocity.angle<=180)?90:270;
-    }
-
-    public void createProjectileObject()
-    {
-        projectiles.add(new Rectangle(this.x, this.y, projDepth, projWidth, projHeight, projMass, new InitialPoint(this.x, this.y, this.velocity)));
     }
 
     public void drawInitialPoint(int fWidth, int fHeight, int xOffset, Graphics2D g)
