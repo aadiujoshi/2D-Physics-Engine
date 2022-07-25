@@ -19,10 +19,12 @@ public class ParametersPanel extends JPanel
     // airResistance(9), collision(10)
 
     double gravity;
-    int projDepth;
-    int projWidth;
-    int projHeight;
+    double projDepth;
+    double projWidth;
+    double projHeight;
     double projMass;
+    double blastRadius;
+    double blastForce;
     double x;
     double y;
     double velocity;
@@ -44,9 +46,9 @@ public class ParametersPanel extends JPanel
 
     public ParametersPanel()
     {
-        parameterStrings = new String[]{"Gravity", "Projectile Depth", "Projectile Width", "Projectile height", "Projectile Mass", "Initial X", "Initial Y", "Initial Velocity", "Initial Angle"};
-        changeParameter = new boolean[]{false, false, false, false, false, false, false, false, false, false, false};
-        textfields = new JTextField[9]; 
+        parameterStrings = new String[]{"Gravity", "Projectile Depth", "Projectile Width", "Projectile height", "Projectile Mass", "Initial X", "Initial Y", "Initial Velocity", "Initial Angle", "Blast Radius", "Blast Force"};
+        changeParameter = new boolean[]{false, false, false, false, false, false, false, false, false, false, false, false, false};
+        textfields = new JTextField[11]; 
         
         airResistance = false;
         collision = false;
@@ -63,7 +65,7 @@ public class ParametersPanel extends JPanel
         airResistanceCheckBox.setFocusable(false);
         airResistanceCheckBox.addItemListener(new ItemListener(){
             public void itemStateChanged(ItemEvent e) {
-                changeParameter[9] = true; //always true
+                changeParameter[11] = true; //always true
                 airResistance = !airResistance;
             }
         });
@@ -73,7 +75,7 @@ public class ParametersPanel extends JPanel
         collisionCheckBox.setFocusable(false);
         collisionCheckBox.addItemListener(new ItemListener(){
             public void itemStateChanged(ItemEvent e){
-                changeParameter[10] = true; //always true;
+                changeParameter[12] = true; //always true;
                 collision = !collision;
             }
         });
@@ -97,11 +99,11 @@ public class ParametersPanel extends JPanel
                     {
                         case 0: gravity = n;
                             break;
-                        case 1: projDepth = (int)n;
+                        case 1: projDepth = n;
                             break;
-                        case 2: projWidth = (int)n;
+                        case 2: projWidth = n;
                             break;
-                        case 3: projHeight = (int)n;
+                        case 3: projHeight = n;
                             break;
                         case 4: projMass = n;
                             break;
@@ -112,6 +114,10 @@ public class ParametersPanel extends JPanel
                         case 7: velocity = n;
                             break;
                         case 8: angle = n;
+                            break;
+                        case 9: blastRadius = n;
+                            break;
+                        case 10: blastForce = n;
                             break;
                     }
                 }
