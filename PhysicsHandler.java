@@ -11,7 +11,7 @@ public class PhysicsHandler
 
     public PhysicsHandler()
     {
-        this.gravity = 100;
+        this.gravity = 500;
         this.airResistance = false;
         this.airDensity = 1;
         this.collision = false;
@@ -21,14 +21,21 @@ public class PhysicsHandler
     {
         for(int i = 0; i < projectiles.size(); i++)
         {
-            Projectile p = projectiles.get(i);
-            
+            Projectile p;
+            synchronized(projectiles){
+                p = projectiles.get(i);
+            }
+
+            if(p.grounded) continue;
+
+            if(groundCollision(p)){
+                p.grounded = true;
+                continue;
+            }
+
             if(p instanceof ExplosiveProjectile)
                 if(generalCollision(p, projectiles))
                     disperseExplosion((ExplosiveProjectile)p, projectiles);
-
-
-            if(groundCollision(p)){p.grounded = true; continue;}
                 
             if(collision) 
                 this.collision(p, projectiles);
@@ -47,6 +54,7 @@ public class PhysicsHandler
 
     public void disperseExplosion(ExplosiveProjectile explosive, ArrayList<Projectile> projectiles)
     {
+        collision = false;
         for(int i = 0; i < projectiles.size(); i++)
         {
             Projectile p = projectiles.get(i);
@@ -71,7 +79,6 @@ public class PhysicsHandler
             //construct new initial point
             p.initial = new InitialPoint(p.x, p.y, new Vector(velocity, theta));
             p.grounded = false;
-            collision = false;
 
             // System.out.println(p.initial);
 
