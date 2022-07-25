@@ -21,9 +21,9 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
     private volatile ArrayList<Projectile> projectiles;
 
     //projectile
-    private int projDepth;
-    private int projWidth;
-    private int projHeight;
+    private double projDepth;
+    private double projWidth;
+    private double projHeight;
     private double projMass;
 
     private double blastRadius;
@@ -31,8 +31,7 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
 
     private int projType; //type of projectile that is shot | 1 -> rectangle, 2 -> explosive
 
-
-    //speedy rendering
+    //rendering
     private double frameLocationX;
     private double frameLocationY;
 
@@ -43,8 +42,11 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
     private Thread mouseCursorThread;
     private Thread physicsHandlerThread;
 
-    // private final int FPS = 360; //higher the frames -> higher the precision | MUST BE LESS THAN 1000 FPS
-    private final double TICK_SPEED; //determines how fast the projectiles move relative to time | TICK_SPEED is in milliseconds
+    private boolean antialiasing;
+
+    private final int FPS = 1000;
+    private final int TICK_SPEED = 1000; //determines how many times per second projectile position is calculated
+    // private final int FRAME_DELAY_NANOS = 500000;
 
     //scrolling
     private int xOffset;
@@ -60,13 +62,13 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
         this.projWidth = 50;
         this.projMass = 100;
         this.blastRadius = 300;
-        this.blastForce = 50;
+        this.blastForce = 10;
         this.projType = 1;
         this.xOffset = 0;
-        this.TICK_SPEED = 1;
         this.graphicsThread = new Thread(new Runnable(){
             public void run() {
                 while(true){
+                    nanoDelay(1000000000/FPS);
                     repaint();
                 }
             }
@@ -81,23 +83,23 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
         });
         this.physicsHandlerThread = new Thread(new Runnable(){
             public void run(){
+                double mx;
+                double my;
                 while(true) {
-                    // try { Thread.sleep(1); }
-                    // catch (InterruptedException e) {}
+                    nanoDelay(1000000000/TICK_SPEED);
 
-                    nanoDelay(150000);
-
-                    double mx = mouseX-frameLocationX;
-                    double my = mouseY-frameLocationY;
+                    mx = mouseX-frameLocationX;
+                    my = mouseY-frameLocationY;
                     
                     if(mouseHeld)
                         initial.updateVectorDirection(mx-(frame.getWidth()/2)+xOffset, frame.getHeight()-my);
 
-                    engine.calculateProjectileMotion(initial, projectiles, TICK_SPEED);
+                    engine.calculateProjectileMotion(initial, projectiles, 1000/TICK_SPEED);
                 }
             }
         });
         this.initWindow(width, height);
+        this.antialiasing = true;
 
         //threads
         graphicsThread.start();
@@ -149,9 +151,15 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
                             if(b) //angle
                                 initial.updateVectorDirection(initial.x+Math.cos((double)parameters.angle*(Math.PI/180)), initial.y+Math.sin((double)parameters.angle*(Math.PI/180)));
                             break;
-                        case 9: engine.airResistance = b ? parameters.airResistance : engine.airResistance;
+                        case 9: blastRadius = b ? parameters.blastRadius : blastRadius;
                             break;
-                        case 10: engine.collision = b ? parameters.collision : engine.collision;
+                        case 10: blastForce = b ? parameters.blastForce : blastForce;
+                            break;
+                        case 11: engine.airResistance = b ? parameters.airResistance : engine.airResistance;
+                            break;
+                        case 12: engine.collision = b ? parameters.collision : engine.collision;
+
+
                     }
                     initial.updateXYVectorMagnitudes();
                 }
@@ -194,25 +202,27 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
     public void paintComponent(Graphics gr)
     {
         Graphics2D g = (Graphics2D)gr;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        if(antialiasing)
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, frame.getWidth(), frame.getHeight());
 
         initial.drawInitialPoint(frame.getWidth(), frame.getHeight(), xOffset, g);
 
         if(projectiles != null) //draw projectiles
-                synchronized(projectiles){
-                    try{
-                        for(Projectile so: projectiles)
-                            so.drawObject(frame.getWidth(), frame.getHeight(), xOffset, g);
-                    } catch(ConcurrentModificationException e) {}
-                }
+            synchronized(projectiles){
+                try{
+                    for(Projectile so: projectiles)
+                        so.drawObject(frame.getWidth(), frame.getHeight(), xOffset, g);
+                } catch(ConcurrentModificationException e) {}
+            }
 
         g.dispose();
     }
 
     public void nanoDelay(long nanos)
     {
+        if(nanos < 0) return;
         final long end = System.nanoTime() + nanos;
         long timeLeft = nanos;
         do {
@@ -247,7 +257,7 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
         
         if(e.getKeyChar() == 'r')
         {
-            engine.gravity = 100;
+            engine.gravity = 500;
             engine.airResistance = false;
             engine.collision = false;
 
@@ -255,22 +265,23 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
             projDepth = 50;
             projWidth = 50;
             projMass = 100;
-            initial.velocity.velocity = 100;
-            initial.velocity.angle = 45;
-            initial.velocity.radians = initial.velocity.angle*(Math.PI/180);
-            initial.x = 0;
-            initial.y = 100;
+
+            initial = new InitialPoint(0, 100, new Vector(100, 45));
             
             blastRadius = 50;
+            blastForce = 10;
 
-            initial.updateXYVectorMagnitudes();
+            // initial.updateXYVectorMagnitudes();
 
             xOffset = 0;
             projectiles.clear();
         }
 
         if(e.getKeyChar() == ' ')
+        {
             this.createProjectileObject();
+            // System.out.println(projectiles.size());
+        }
 
         if(e.getKeyChar() == '+')
         {
