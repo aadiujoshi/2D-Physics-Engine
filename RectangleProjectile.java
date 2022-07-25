@@ -2,7 +2,7 @@ import java.awt.*;
 
 public class RectangleProjectile extends Projectile
 {
-    public RectangleProjectile(InitialPoint initial, int depth, int width, int height, double mass)
+    public RectangleProjectile(InitialPoint initial, double depth, double width, double height, double mass)
     {
         super(initial, depth, width, height, depth*width*height, mass, 1.05);
     }
@@ -15,7 +15,7 @@ public class RectangleProjectile extends Projectile
         int cx = (fWidth/2)+(int)x-xOffset;
         int cy = fHeight-(int)y-40;
 
-        g.drawRect(cx-(width/2), cy-(height/2), width, height);
+        g.drawRect(cx-(int)(width/2), cy-(int)(height/2), (int)width, (int)height);
         
         g.setColor(Color.RED);
 
