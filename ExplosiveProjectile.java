@@ -6,7 +6,7 @@ public class ExplosiveProjectile extends Projectile
     double blastForce;
     double blastRadius;
 
-    public ExplosiveProjectile(InitialPoint initial, int depth, int width, int height, double mass, double projRadius, double blastRadius, double blastForce)
+    public ExplosiveProjectile(InitialPoint initial, double depth, double width, double height, double mass, double projRadius, double blastRadius, double blastForce)
     {
         super(initial, depth, width, height, ((double)4/3)*Math.PI*(Math.pow(projRadius, 3)), mass, 0.47);
         this.blastRadius = blastRadius;
@@ -21,7 +21,7 @@ public class ExplosiveProjectile extends Projectile
         int cx = (fWidth/2)+(int)x-xOffset;
         int cy = fHeight-(int)y-40;
 
-        g.drawOval(cx-(width/2), cy-(height/2), width, height);
+        g.drawOval(cx-(int)(width/2), cy-(int)(height/2), (int)width, (int)height);
     }   
 
     public double getProjected2DX() 
