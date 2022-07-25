@@ -6,9 +6,9 @@ public abstract class Projectile
     double y;
     double rotation;
 
-    int depth;
-    int width;
-    int height;
+    double depth;
+    double width;
+    double height;
 
     double mass;
     double volume;
@@ -24,7 +24,7 @@ public abstract class Projectile
    
     double time;
 
-    public Projectile(InitialPoint initial, int depth, int width, int height, double volume, double mass, double dragCoefficient)
+    public Projectile(InitialPoint initial, double depth, double width, double height, double volume, double mass, double dragCoefficient)
     {
         this.x = initial.x;
         this.y = initial.y;
