@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 
 public class PhysicsHandler 
 {
@@ -58,8 +59,7 @@ public class PhysicsHandler
         for(int i = 0; i < projectiles.size(); i++)
         {
             Projectile p = projectiles.get(i);
-            if(p instanceof ExplosiveProjectile)
-            {
+            if(p instanceof ExplosiveProjectile){
                 synchronized(projectiles){
                     projectiles.remove(i);
                 }
@@ -94,44 +94,50 @@ public class PhysicsHandler
 
     public boolean generalCollision(Projectile p, ArrayList<Projectile> projectiles)
     {
-        if(groundCollision(p)) return true;
-        for(Projectile op : projectiles)
-        {
-            if(((p.x-p.width/2 < op.x+op.width/2 && p.x>op.x) || 
-                (p.x+p.width/2 > op.x-op.width/2 && p.x<op.x)) && 
-                ((p.y+p.height/2 > op.y-op.height/2 && p.y<op.y) || 
-                (p.y-p.height/2 < op.y+op.height/2 && p.y>op.y)))
-                    return true;
-        }
+        try{
+            if(groundCollision(p)) return true;
+            for(Projectile op : projectiles)
+            {
+                if(((p.x-p.width/2 < op.x+op.width/2 && p.x>op.x) || 
+                    (p.x+p.width/2 > op.x-op.width/2 && p.x<op.x)) && 
+                    ((p.y+p.height/2 > op.y-op.height/2 && p.y<op.y) || 
+                    (p.y-p.height/2 < op.y+op.height/2 && p.y>op.y)))
+                        return true;
+            }
+        } catch(ConcurrentModificationException e) {}
         return false;
     }
 
     public void bottomProjectileCollision(Projectile p, ArrayList<Projectile> projectiles)
     {
-        for(Projectile op : projectiles)
-        {
-            if(((p.x-p.width/2 < op.x+op.width/2 && p.x>op.x) || 
-                (p.x+p.width/2 > op.x-op.width/2 && p.x<op.x)) && 
-                ((p.y+p.height/2 > op.y-op.height/2 && p.y<op.y) || 
-                (p.y-p.height/2 < op.y+op.height/2 && p.y>op.y)))
-                    if((p.height/2+op.height/2)-(p.y-op.y) < 0.1)
-                        p.grounded = true;
-        }
+        try{
+            for(Projectile op : projectiles)
+            {
+                if(((p.x-p.width/2 < op.x+op.width/2 && p.x>op.x) || 
+                    (p.x+p.width/2 > op.x-op.width/2 && p.x<op.x)) && 
+                    ((p.y+p.height/2 > op.y-op.height/2 && p.y<op.y) || 
+                    (p.y-p.height/2 < op.y+op.height/2 && p.y>op.y)))
+                        if((p.height/2+op.height/2)-(p.y-op.y) < 0.1)
+                            p.grounded = true;
+            }
+        } catch(ConcurrentModificationException e) {}
     }
 
     public int projectileCollision(Projectile p, ArrayList<Projectile> projectiles) //returns 0, 1, or 2 -> no collision, side collision, bottom collision
     {
-        for(Projectile op : projectiles)
-        {
-            if(((p.x-p.width/2 < op.x+op.width/2 && p.x>op.x) || 
-                (p.x+p.width/2 > op.x-op.width/2 && p.x<op.x)) && 
-                ((p.y+p.height/2 > op.y-op.height/2 && p.y<op.y) || 
-                (p.y-p.height/2 < op.y+op.height/2 && p.y>op.y)))
-                    if((p.width/2+op.width/2)-(Math.abs(p.x-op.x)) < (p.height/2+op.height/2)-(p.y-op.y))
-                        return 1;
-                    else
-                        return 2;
-        }   
+        try{
+            for(Projectile op : projectiles)
+            {
+                if(((p.x-p.width/2 < op.x+op.width/2 && p.x>op.x) || 
+                    (p.x+p.width/2 > op.x-op.width/2 && p.x<op.x)) && 
+                    ((p.y+p.height/2 > op.y-op.height/2 && p.y<op.y) || 
+                    (p.y-p.height/2 < op.y+op.height/2 && p.y>op.y)))
+                        if((p.width/2+op.width/2)-(Math.abs(p.x-op.x)) < (p.height/2+op.height/2)-(p.y-op.y) && op.grounded == true)
+                            return 1;
+                        else if(op.grounded == true)
+                            return 2;
+            }   
+        } catch(ConcurrentModificationException e) {}
         return 0;
     }
 
