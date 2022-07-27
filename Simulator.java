@@ -43,9 +43,13 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
     private Thread physicsHandlerThread;
 
     private boolean antialiasing;
+    private boolean debug;
 
     private final int FPS = 1000;
-    private final int TICK_SPEED = 1000; //determines how many times per second projectile position is calculated
+    private float averageFPS;
+    private final double DESIRED_TICK_SPEED = 1000;
+    private double tickSpeed99thPercent; //determines how many times per second projectile position is calculated
+    // private final double TICK_DELAY_PER_PROJECTILE = 1.75;
     // private final int FRAME_DELAY_NANOS = 500000;
 
     //scrolling
@@ -67,9 +71,19 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
         this.xOffset = 0;
         this.graphicsThread = new Thread(new Runnable(){
             public void run() {
+                double mx;
+                double my;
+
                 while(true){
                     nanoDelay(1000000000/FPS);
+
                     repaint();
+
+                    mx = mouseX-frameLocationX;
+                    my = mouseY-frameLocationY;
+
+                    if(mouseHeld)
+                        initial.updateVectorDirection(mx-(frame.getWidth()/2)+xOffset, frame.getHeight()-my);
                 }
             }
         });
@@ -83,23 +97,35 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
         });
         this.physicsHandlerThread = new Thread(new Runnable(){
             public void run(){
-                double mx;
-                double my;
+                long startNanos;
+                long delayNanos = 0;
+
+                // long startTimeMillis = System.currentTimeMillis(); //for updating 99% tickspeed
+
+                float tempAverageFPS = FPS;
+
                 while(true) {
-                    nanoDelay(1000000000/TICK_SPEED);
+                    nanoDelay((long)(1000000000/DESIRED_TICK_SPEED)-delayNanos);
 
-                    mx = mouseX-frameLocationX;
-                    my = mouseY-frameLocationY;
+                    startNanos = System.nanoTime();
+                
+                    engine.calculateProjectileMotion(initial, projectiles, 1000/(DESIRED_TICK_SPEED)+(delayNanos/1000000));
+
+                    delayNanos = System.nanoTime()-startNanos;
+                    tickSpeed99thPercent = tickSpeed99thPercent < DESIRED_TICK_SPEED-(delayNanos/1000000) ? tickSpeed99thPercent : DESIRED_TICK_SPEED-(delayNanos/1000000);
                     
-                    if(mouseHeld)
-                        initial.updateVectorDirection(mx-(frame.getWidth()/2)+xOffset, frame.getHeight()-my);
-
-                    engine.calculateProjectileMotion(initial, projectiles, 1000/TICK_SPEED);
+                    if(delayNanos!=0)
+                        tempAverageFPS = (tempAverageFPS+(1000000/delayNanos))/2;
+                    if(System.currentTimeMillis() % 1000 < 10) averageFPS = tempAverageFPS;
                 }
             }
         });
         this.initWindow(width, height);
+
         this.antialiasing = true;
+        this.debug = true;
+        this.tickSpeed99thPercent = DESIRED_TICK_SPEED;
+        this.averageFPS = FPS;
 
         //threads
         graphicsThread.start();
@@ -207,7 +233,16 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, frame.getWidth(), frame.getHeight());
 
-        initial.drawInitialPoint(frame.getWidth(), frame.getHeight(), xOffset, g);
+        if(debug)
+        {
+            initial.drawInitialPoint(frame.getWidth(), frame.getHeight(), xOffset, g);
+            g.setColor(Color.WHITE);
+            g.drawString("AVG FPS: " + averageFPS, 0, 0+20);
+            g.drawString("99% TICKS PER SECOND: " + tickSpeed99thPercent, 0, 20+20);
+            g.drawString("PROJECTILE COUNT: " + projectiles.size(), 0, 40+20);
+        }
+
+        g.setColor(Color.BLACK);
 
         if(projectiles != null) //draw projectiles
             synchronized(projectiles){
@@ -252,6 +287,9 @@ public class Simulator extends JPanel implements KeyListener, MouseListener
         if(e.getKeyChar() == 'd')
             initial.x+=10; 
         
+        if(e.getKeyCode() == 114) //f3 just like minecraft
+            debug = !debug;
+
         if(e.getKeyChar() == 'b')
             projType = projType == 1 ? 2 : 1;
         
